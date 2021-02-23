@@ -1,0 +1,13 @@
+[Unit]
+Description=Port Concentrator daemon
+
+[Service]
+Type=simple
+Environment="LD_LIBRARY_PATH=/usr/local/lib"
+ExecStartPre=/bin/cp /usr/local/portconcentrator/concentrator_preload /usr/local/portconcentrator/concentrator
+ExecStart=/usr/local/portconcentrator/concentrator
+Restart=always
+User=concentrator
+
+[Install]
+WantedBy=multi-user.target
