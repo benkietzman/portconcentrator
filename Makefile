@@ -22,7 +22,7 @@ bin/concentrator: ../common/libcommon.a obj/concentrator.o
 
 obj/concentrator.o: concentrator.cpp
 	-if [ ! -d obj ]; then mkdir obj; fi;
-	g++ -std=c++14 -Wall -ggdb -c concentrator.cpp -o obj/concentrator.o $(CPPFLAGS) -I/data/extras/include -I../common
+	g++ -Wall -ggdb -c concentrator.cpp -o obj/concentrator.o $(CPPFLAGS) -I/data/extras/include -I../common
 
 install: bin/concentrator
 	-if [ ! -d $(prefix)/portconcentrator ]; then mkdir $(prefix)/portconcentrator; fi;
