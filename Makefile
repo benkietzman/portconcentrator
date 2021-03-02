@@ -17,10 +17,16 @@ bin/concentrator: ../common/libcommon.a obj/concentrator.o
 	-if [ ! -d bin ]; then mkdir bin; fi;
 	g++ -ggdb -o bin/concentrator obj/concentrator.o $(LDFLAGS) -L/data/extras/lib -L../common -lcommon -lb64 -lcrypto -lexpat -lmjson -lpthread -lssl -ltar -lz
 
-../common/libcommon.a:
-	cd ../common; ./configure; make;
+../common/libcommon.a: ../common/Makefile
+	cd ../common; make;
 
-obj/concentrator.o: concentrator.cpp
+../common/Makefile: ../common/configure
+	cd ../common; ./configure;
+
+../common/configure:
+	cd ../; git clone https://github.com/benkietzman/common.git
+
+obj/concentrator.o: concentrator.cpp ../common/Makefile
 	-if [ ! -d obj ]; then mkdir obj; fi;
 	g++ -Wall -ggdb -c concentrator.cpp -o obj/concentrator.o $(CPPFLAGS) -I/data/extras/include -I../common
 
