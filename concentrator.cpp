@@ -518,10 +518,6 @@ void active(bridge *ptBridge)
     }
     ptBridge->ptInfo->insert("Error", ssMessage.str());
   }
-  if (gpSyslog != NULL)
-  {
-    gpSyslog->connectionStopped("Closed request.", ptBridge->fdIncoming);
-  }
   close(ptBridge->fdIncoming);
   ptBridge->bDone = true;
 }
@@ -592,10 +588,6 @@ void queue(int fdSocket)
   }
   if (!bValid)
   {
-    if (gpSyslog != NULL)
-    {
-      gpSyslog->connectionStopped("Closed request.", fdSocket);
-    }
     close(fdSocket);
   }
 }
