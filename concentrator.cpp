@@ -345,7 +345,7 @@ void active(bridge *ptBridge)
   }
   if (!serverGroup.empty())
   {
-    for (list<string>::iterator i = serverGroup.begin(); !bConnected && i != serverGroup.end(); i++)
+    for (auto i = serverGroup.begin(); !bConnected && i != serverGroup.end(); i++)
     {
       string strServer;
       timeval tTimeVal;
@@ -635,11 +635,11 @@ void throttle()
       loadBridge.pop_front();
     }
     mutexLoad.unlock();
-    for (map<string, data *>::iterator i = service.begin(); i != service.end(); i++)
+    for (auto i = service.begin(); i != service.end(); i++)
     {
       list<list<bridge *>::iterator> removeActive, removeQueue;
       size_t nActive = i->second->active.size(), nQueue = i->second->queue.size();
-      for (list<bridge *>::iterator j = i->second->active.begin(); j != i->second->active.end(); j++)
+      for (auto j = i->second->active.begin(); j != i->second->active.end(); j++)
       {
         if ((*j)->bDone)
         {
@@ -662,12 +662,12 @@ void throttle()
           removeActive.push_back(j);
         }
       }
-      for (list<list<bridge *>::iterator>::iterator j = removeActive.begin(); j != removeActive.end(); j++)
+      for (auto &j : removeActive)
       {
-        i->second->active.erase(*j);
+        i->second->active.erase(j);
       }
       removeActive.clear();
-      for (list<bridge *>::iterator j = i->second->queue.begin(); j != i->second->queue.end(); j++)
+      for (auto j = i->second->queue.begin(); j != i->second->queue.end(); j++)
       {
         if ((int)i->second->active.size() < (*j)->nThrottle)
         {
@@ -678,9 +678,9 @@ void throttle()
           removeQueue.push_back(j);
         }
       }
-      for (list<list<bridge *>::iterator>::iterator j = removeQueue.begin(); j != removeQueue.end(); j++)
+      for (auto &j : removeQueue)
       {
-        i->second->queue.erase(*j);
+        i->second->queue.erase(j);
       }
       removeQueue.clear();
       if (i->second->active.empty() && i->second->queue.empty())
@@ -689,9 +689,9 @@ void throttle()
         removeService.push_back(i);
       }
     }
-    for (list<map<string, data *>::iterator>::iterator i = removeService.begin(); i != removeService.end(); i++)
+    for (auto &i : removeService)
     {
-      service.erase(*i);
+      service.erase(i);
     }
     removeService.clear();
     if (!bUpdated)
