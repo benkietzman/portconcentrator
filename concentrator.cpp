@@ -79,7 +79,7 @@ struct bridge
   time_t CStartTime;
   Json *ptInfo;
 };
-struct data
+struct service
 {
   list<bridge *> active;
   list<bridge *> queue;
@@ -89,7 +89,7 @@ struct data
 static bool gbDaemon = false; //!< Global daemon variable.
 static bool gbShutdown = false; //!< Global shutdown variable.
 static list<bridge *> loadBridge; //!< Global bridge entry data.
-static map<string, data *> service; //!< Global services variable.
+static map<string, service *> services; //!< Global services variable.
 static string gstrApplication = "Port Concentrator"; //!< Global application name.
 static string gstrData = "/data/portconcentrator"; //!< Global data path.
 static string gstrEmail; //!< Global notification email address.
@@ -130,11 +130,11 @@ int main(int argc, char *argv[])
   gpCentral = new Central(strError);
   // {{{ set signal handling
   sethandles(sighandle);
-  sigignore(SIGBUS);
-  sigignore(SIGCHLD);
-  sigignore(SIGPIPE);
-  sigignore(SIGSEGV);
-  sigignore(SIGWINCH);
+  signal(SIGBUS, SIG_IGN);
+  signal(SIGCHLD, SIG_IGN);
+  signal(SIGPIPE, SIG_IGN);
+  signal(SIGSEGV, SIG_IGN);
+  signal(SIGWINCH, SIG_IGN);
   // }}}
   // {{{ command line arguments
   for (int i = 1; i < argc; i++)
@@ -616,26 +616,26 @@ void throttle()
   while (!gbShutdown)
   {
     bool bUpdated = false;
-    list<map<string, data *>::iterator> removeService;
+    list<map<string, service *>::iterator> removeService;
     mutexLoad.lock();
     while (!loadBridge.empty())
     {
       bridge *ptBridge = loadBridge.front();
-      if (service.find(ptBridge->ptInfo->m["Service"]->v) == service.end())
+      if (services.find(ptBridge->ptInfo->m["Service"]->v) == services.end())
       {
-        data *ptData = new data;
-        service[ptBridge->ptInfo->m["Service"]->v] = ptData;
+        service *ptService = new service;
+        services[ptBridge->ptInfo->m["Service"]->v] = ptService;
       }
       if (ptBridge->ptInfo->m.find("Load") != ptBridge->ptInfo->m.end())
       {
         delete ptBridge->ptInfo->m["Load"];
       }
       ptBridge->ptInfo->m["Load"] = new Json;
-      service[ptBridge->ptInfo->m["Service"]->v]->queue.push_back(ptBridge);
+      services[ptBridge->ptInfo->m["Service"]->v]->queue.push_back(ptBridge);
       loadBridge.pop_front();
     }
     mutexLoad.unlock();
-    for (auto i = service.begin(); i != service.end(); i++)
+    for (auto i = services.begin(); i != services.end(); i++)
     {
       list<list<bridge *>::iterator> removeActive, removeQueue;
       size_t nActive = i->second->active.size(), nQueue = i->second->queue.size();
@@ -691,7 +691,7 @@ void throttle()
     }
     for (auto &i : removeService)
     {
-      service.erase(i);
+      services.erase(i);
     }
     removeService.clear();
     if (!bUpdated)
