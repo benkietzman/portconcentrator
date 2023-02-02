@@ -31,7 +31,6 @@
 using namespace std;
 #include <Central>
 #include <Json>
-#include <Syslog>
 using namespace common;
 // }}}
 // {{{ defines
@@ -45,7 +44,7 @@ using namespace common;
 /*! \def mUSAGE(A)
 * \brief Prints the usage statement.
 */
-#define mUSAGE(A) cout << endl << "Usage:  "<< A << " [options]"  << endl << endl << " -c, --conf" << endl << "     Sets the configuration directory." << endl << endl << " -d, --daemon" << endl << "     Turns the process into a daemon." << endl << endl << "     --data" << endl << "     Sets the data directory." << endl << endl << " -e EMAIL, --email=EMAIL" << endl << "     Provides the email address for default notifications." << endl << endl << " -h, --help" << endl << "     Displays this usage screen." << endl << endl << "     --syslog" << endl << "     Enables syslog." << endl << endl << " -v, --version" << endl << "     Displays the current version of this software." << endl << endl
+#define mUSAGE(A) cout << endl << "Usage:  "<< A << " [options]"  << endl << endl << " -c, --conf" << endl << "     Sets the configuration directory." << endl << endl << " -d, --daemon" << endl << "     Turns the process into a daemon." << endl << endl << "     --data" << endl << "     Sets the data directory." << endl << endl << " -e EMAIL, --email=EMAIL" << endl << "     Provides the email address for default notifications." << endl << endl << " -h, --help" << endl << "     Displays this usage screen." << endl << endl << " -v, --version" << endl << "     Displays the current version of this software." << endl << endl
 /*! \def mVER_USAGE(A,B)
 * \brief Prints the version number.
 */
@@ -94,7 +93,6 @@ static string gstrApplication = "Port Concentrator"; //!< Global application nam
 static string gstrData = "/data/portconcentrator"; //!< Global data path.
 static string gstrEmail; //!< Global notification email address.
 static Central *gpCentral = NULL; //!< Contains the Central class.
-static Syslog *gpSyslog = NULL; //!< Contains the Syslog class.
 mutex mutexLoad; //! < Contains the loadBridge mutex.
 // }}}
 // {{{ prototypes
@@ -182,10 +180,6 @@ int main(int argc, char *argv[])
     {
       mUSAGE(argv[0]);
       return 0;
-    }
-    else if (strArg == "--syslog")
-    {
-      gpSyslog = new Syslog(gstrApplication, "concentrator");
     }
     else if (strArg == "-v" || strArg == "--version")
     {
@@ -310,10 +304,6 @@ int main(int argc, char *argv[])
     mUSAGE(argv[0]);
   }
   // }}}
-  if (gpSyslog != NULL)
-  {
-    delete gpSyslog;
-  }
   delete gpCentral;
 
   return 0;
@@ -541,10 +531,6 @@ void queue(int fdSocket)
   {
     sockaddr_in6 *s = (sockaddr_in6 *)&addr;
     inet_ntop(AF_INET6, &s->sin6_addr, szIP, sizeof(szIP));
-  }
-  if (gpSyslog != NULL)
-  {
-    gpSyslog->connectionStarted("Accepted an incoming request.", fdSocket);
   }
   if (gpCentral->utility()->getLine(fdSocket, strRequest))
   {
