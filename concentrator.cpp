@@ -69,6 +69,8 @@ struct bridge
   int fdIncoming;
   int fdOutgoing;
   int nThrottle;
+  size_t unRecv;
+  size_t unSend;
   string strBuffer[2];
   string strLoadBalancer;
   string strPort;
@@ -443,6 +445,7 @@ void active(bridge *ptBridge)
             {
               if ((nReturn = read(fds[i].fd, szBuffer, 65536)) > 0)
               {
+                ptBridge->unRecv += nReturn;
                 ptBridge->strBuffer[((bIn)?1:0)].append(szBuffer, nReturn);
               }
               else
@@ -460,6 +463,7 @@ void active(bridge *ptBridge)
             {
               if ((nReturn = write(fds[i].fd, ptBridge->strBuffer[((bIn)?0:1)].c_str(), ptBridge->strBuffer[((bIn)?0:1)].size())) > 0)
               {
+                ptBridge->unSend += nReturn;
                 ptBridge->strBuffer[((bIn)?0:1)].erase(0, nReturn);
               }
               else
@@ -545,6 +549,8 @@ void queue(int fdSocket)
       bridge *ptBridge = new bridge;
       bValid = true;
       ptBridge->bDone = false;
+      ptBridge->unRecv = 0;
+      ptBridge->unSend = 0;
       ptBridge->ptInfo = new Json(request);
       if (request.find("Server") != request.end() && !request["Server"].empty())
       {
@@ -631,14 +637,18 @@ void throttle()
       {
         if ((*j)->bDone)
         {
-          stringstream ssActive, ssDuration, ssMessage, ssQueue;
+          stringstream ssActive, ssDuration, ssMessage, ssQueue, ssRecv, ssSend;
           ssActive << (nActive - removeActive.size() - 1);
-          (*j)->ptInfo->m["Load"]->insert("Active", ssActive.str());
+          (*j)->ptInfo->m["Load"]->insert("Active", ssActive.str(), 'n');
           ssQueue << nQueue;
-          (*j)->ptInfo->m["Load"]->insert("Queue", ssQueue.str());
+          (*j)->ptInfo->m["Load"]->insert("Queue", ssQueue.str(), 'n');
           time(&((*j)->CEndTime));
           ssDuration << ((*j)->CEndTime - (*j)->CStartTime);
-          (*j)->ptInfo->insert("Duration", ssDuration.str());
+          (*j)->ptInfo->insert("Duration", ssDuration.str(), 'n');
+          ssRecv << (*j)->unRecv;
+          (*j)->ptInfo->insert("Recv", ssRecv.str(), 'n');
+          ssSend << (*j)->unSend;
+          (*j)->ptInfo->insert("Send", ssSend.str(), 'n');
           ssMessage << (*j)->ptInfo;
           if ((*j)->ptInfo->m.find("Error") != (*j)->ptInfo->m.end() && !(*j)->ptInfo->m["Error"]->v.empty())
           {
