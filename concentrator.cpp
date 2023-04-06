@@ -69,8 +69,10 @@ struct bridge
   int fdIncoming;
   int fdOutgoing;
   int nThrottle;
-  size_t unRecv;
-  size_t unSend;
+  size_t unInRecv;
+  size_t unInSend;
+  size_t unOutRecv;
+  size_t unOutSend;
   string strBuffer[2];
   string strLoadBalancer;
   string strPort;
@@ -445,7 +447,14 @@ void active(bridge *ptBridge)
             {
               if ((nReturn = read(fds[i].fd, szBuffer, 65536)) > 0)
               {
-                ptBridge->unRecv += nReturn;
+                if (bIn)
+                {
+                  ptBridge->unInRecv += nReturn;
+                }
+                else
+                {
+                  ptBridge->unOutRecv += nReturn;
+                }
                 ptBridge->strBuffer[((bIn)?1:0)].append(szBuffer, nReturn);
               }
               else
@@ -463,7 +472,14 @@ void active(bridge *ptBridge)
             {
               if ((nReturn = write(fds[i].fd, ptBridge->strBuffer[((bIn)?0:1)].c_str(), ptBridge->strBuffer[((bIn)?0:1)].size())) > 0)
               {
-                ptBridge->unSend += nReturn;
+                if (bIn)
+                {
+                  ptBridge->unInSend += nReturn;
+                }
+                else
+                {
+                  ptBridge->unOutSend += nReturn;
+                }
                 ptBridge->strBuffer[((bIn)?0:1)].erase(0, nReturn);
               }
               else
@@ -549,8 +565,10 @@ void queue(int fdSocket)
       bridge *ptBridge = new bridge;
       bValid = true;
       ptBridge->bDone = false;
-      ptBridge->unRecv = 0;
-      ptBridge->unSend = 0;
+      ptBridge->unInRecv = 0;
+      ptBridge->unInSend = 0;
+      ptBridge->unOutRecv = 0;
+      ptBridge->unOutSend = 0;
       ptBridge->ptInfo = new Json(request);
       if (request.find("Server") != request.end() && !request["Server"].empty())
       {
@@ -625,6 +643,11 @@ void throttle()
         delete ptBridge->ptInfo->m["Load"];
       }
       ptBridge->ptInfo->m["Load"] = new Json;
+      if (ptBridge->ptInfo->m.find("Transfer") != ptBridge->ptInfo->m.end())
+      {
+        delete ptBridge->ptInfo->m["Transfer"];
+      }
+      ptBridge->ptInfo->m["Transfer"] = new Json;
       services[ptBridge->ptInfo->m["Service"]->v]->queue.push_back(ptBridge);
       loadBridge.pop_front();
     }
@@ -637,7 +660,7 @@ void throttle()
       {
         if ((*j)->bDone)
         {
-          stringstream ssActive, ssDuration, ssMessage, ssQueue, ssRecv, ssSend;
+          stringstream ssActive, ssDuration, ssInRecv, ssInSend, ssMessage, ssOutRecv, ssOutSend, ssQueue;
           ssActive << (nActive - removeActive.size() - 1);
           (*j)->ptInfo->m["Load"]->insert("Active", ssActive.str(), 'n');
           ssQueue << nQueue;
@@ -645,10 +668,14 @@ void throttle()
           time(&((*j)->CEndTime));
           ssDuration << ((*j)->CEndTime - (*j)->CStartTime);
           (*j)->ptInfo->insert("Duration", ssDuration.str(), 'n');
-          ssRecv << (*j)->unRecv;
-          (*j)->ptInfo->insert("Recv", ssRecv.str(), 'n');
-          ssSend << (*j)->unSend;
-          (*j)->ptInfo->insert("Send", ssSend.str(), 'n');
+          ssInRecv << (*j)->unInRecv;
+          (*j)->ptInfo->m["Transfer"]->insert("InRecv", ssInRecv.str(), 'n');
+          ssInSend << (*j)->unInSend;
+          (*j)->ptInfo->m["Transfer"]->insert("InSend", ssInSend.str(), 'n');
+          ssOutRecv << (*j)->unOutRecv;
+          (*j)->ptInfo->m["Transfer"]->insert("OutRecv", ssOutRecv.str(), 'n');
+          ssOutSend << (*j)->unOutSend;
+          (*j)->ptInfo->m["Transfer"]->insert("OutSend", ssOutSend.str(), 'n');
           ssMessage << (*j)->ptInfo;
           if ((*j)->ptInfo->m.find("Error") != (*j)->ptInfo->m.end() && !(*j)->ptInfo->m["Error"]->v.empty())
           {
