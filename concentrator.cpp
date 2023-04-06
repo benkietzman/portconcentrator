@@ -648,6 +648,8 @@ void throttle()
         delete ptBridge->ptInfo->m["Transfer"];
       }
       ptBridge->ptInfo->m["Transfer"] = new Json;
+      ptBridge->ptInfo->m["Transfer"]->m["In"] = new Json;
+      ptBridge->ptInfo->m["Transfer"]->m["Out"] = new Json;
       services[ptBridge->ptInfo->m["Service"]->v]->queue.push_back(ptBridge);
       loadBridge.pop_front();
     }
@@ -669,13 +671,13 @@ void throttle()
           ssDuration << ((*j)->CEndTime - (*j)->CStartTime);
           (*j)->ptInfo->insert("Duration", ssDuration.str(), 'n');
           ssInRecv << (*j)->unInRecv;
-          (*j)->ptInfo->m["Transfer"]->insert("InRecv", ssInRecv.str(), 'n');
+          (*j)->ptInfo->m["Transfer"]->m["In"]->insert("Recv", ssInRecv.str(), 'n');
           ssInSend << (*j)->unInSend;
-          (*j)->ptInfo->m["Transfer"]->insert("InSend", ssInSend.str(), 'n');
+          (*j)->ptInfo->m["Transfer"]->m["In"]->insert("Send", ssInSend.str(), 'n');
           ssOutRecv << (*j)->unOutRecv;
-          (*j)->ptInfo->m["Transfer"]->insert("OutRecv", ssOutRecv.str(), 'n');
+          (*j)->ptInfo->m["Transfer"]->m["Out"]->insert("Recv", ssOutRecv.str(), 'n');
           ssOutSend << (*j)->unOutSend;
-          (*j)->ptInfo->m["Transfer"]->insert("OutSend", ssOutSend.str(), 'n');
+          (*j)->ptInfo->m["Transfer"]->m["Out"]->insert("Send", ssOutSend.str(), 'n');
           ssMessage << (*j)->ptInfo;
           if ((*j)->ptInfo->m.find("Error") != (*j)->ptInfo->m.end() && !(*j)->ptInfo->m["Error"]->v.empty())
           {
