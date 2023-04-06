@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
       ofstream outStart((gstrData + START).c_str());
       outStart.close();
       thread tThread(throttle);
+      pthread_setname_np(tThread.native_handle(), "throttle");
       tThread.detach();
       memset(&hints, 0, sizeof(struct addrinfo));
       hints.ai_family = AF_INET6;
@@ -267,6 +268,7 @@ int main(int argc, char *argv[])
             while ((fdIncoming = accept(fdSocket, (struct sockaddr *)&cli_addr, &clilen)) >= 0)
             {
               thread tThread(queue, fdIncoming);
+              pthread_setname_np(tThread.native_handle(), "queue");
               tThread.detach();
             }
           }
@@ -660,6 +662,7 @@ void throttle()
           bUpdated = true;
           i->second->active.push_back(*j);
           thread tThread(active, (*j));
+          pthread_setname_np(tThread.native_handle(), "active");
           tThread.detach();
           removeQueue.push_back(j);
         }
