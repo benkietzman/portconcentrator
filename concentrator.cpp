@@ -18,6 +18,7 @@
 // {{{ includes
 #include <arpa/inet.h>
 #include <cerrno>
+#include <ctime>
 #include <iostream>
 #include <list>
 #include <map>
@@ -405,6 +406,8 @@ void active(bridge *ptBridge)
     int nReturn;
     pollfd *fds;
     size_t unIndex;
+    time_t CTime[2];
+    time(&(CTime[0]));
     while (!bExit)
     {
       unIndex = 0;
@@ -505,6 +508,12 @@ void active(bridge *ptBridge)
       else
       {
         bExit = true;
+      }
+      time(&(CTime[1]));
+      if ((CTime[1] - CTime[0]) > 600)
+      {
+        bExit = true;
+        ptBridge->ptInfo->insert("Error", "error:  Exceeded 10 minute timeout.");
       }
     }
     close(ptBridge->fdOutgoing);
