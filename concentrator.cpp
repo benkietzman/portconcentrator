@@ -648,6 +648,11 @@ void throttle()
         service *ptService = new service;
         services[ptBridge->ptInfo->m["Service"]->v] = ptService;
       }
+      if (ptBridge->ptInfo->m.find("Duration") != ptBridge->ptInfo->m.end())
+      {
+        delete ptBridge->ptInfo->m["Duration"];
+      }
+      ptBridge->ptInfo->m["Duration"] = new Json;
       if (ptBridge->ptInfo->m.find("Load") != ptBridge->ptInfo->m.end())
       {
         delete ptBridge->ptInfo->m["Load"];
@@ -672,16 +677,16 @@ void throttle()
       {
         if ((*j)->bDone)
         {
-          stringstream ssActive, ssDurationActive, ssDurationQueue, ssInRecv, ssInSend, ssMessage, ssOutRecv, ssOutSend, ssQueue;
-          ssActive << (nActive - removeActive.size() - 1);
-          (*j)->ptInfo->m["Load"]->insert("Active", ssActive.str(), 'n');
-          ssQueue << nQueue;
-          (*j)->ptInfo->m["Load"]->insert("Queue", ssQueue.str(), 'n');
+          stringstream ssDurationActive, ssDurationQueue, ssInRecv, ssInSend, ssLoadActive, ssLoadQueue, ssMessage, ssOutRecv, ssOutSend;
           time(&((*j)->CEndTime));
           ssDurationActive << ((*j)->CEndTime - (*j)->CActiveTime);
-          (*j)->ptInfo->insert("Duration (active)", ssDurationActive.str(), 'n');
+          (*j)->ptInfo->m["Duration"]->insert("Active", ssDurationActive.str(), 'n');
           ssDurationQueue << ((*j)->CActiveTime - (*j)->CStartTime);
-          (*j)->ptInfo->insert("Duration (queue)", ssDurationQueue.str(), 'n');
+          (*j)->ptInfo->m["Duration"]->insert("Queue", ssDurationQueue.str(), 'n');
+          ssLoadActive << (nActive - removeActive.size() - 1);
+          (*j)->ptInfo->m["Load"]->insert("Active", ssLoadActive.str(), 'n');
+          ssLoadQueue << nQueue;
+          (*j)->ptInfo->m["Load"]->insert("Queue", ssLoadQueue.str(), 'n');
           ssInRecv << (*j)->unInRecv;
           (*j)->ptInfo->m["Transfer"]->m["In"]->insert("Recv", ssInRecv.str(), 'n');
           ssInSend << (*j)->unInSend;
