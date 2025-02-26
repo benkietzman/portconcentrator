@@ -79,6 +79,7 @@ struct bridge
   string strPort;
   string strServer;
   string strServiceJunction;
+  time_t CActiveTime;
   time_t CEndTime;
   time_t CStartTime;
   Json *ptInfo;
@@ -671,14 +672,16 @@ void throttle()
       {
         if ((*j)->bDone)
         {
-          stringstream ssActive, ssDuration, ssInRecv, ssInSend, ssMessage, ssOutRecv, ssOutSend, ssQueue;
+          stringstream ssActive, ssDurationActive, ssDurationQueue, ssInRecv, ssInSend, ssMessage, ssOutRecv, ssOutSend, ssQueue;
           ssActive << (nActive - removeActive.size() - 1);
           (*j)->ptInfo->m["Load"]->insert("Active", ssActive.str(), 'n');
           ssQueue << nQueue;
           (*j)->ptInfo->m["Load"]->insert("Queue", ssQueue.str(), 'n');
           time(&((*j)->CEndTime));
-          ssDuration << ((*j)->CEndTime - (*j)->CStartTime);
-          (*j)->ptInfo->insert("Duration", ssDuration.str(), 'n');
+          ssDurationActive << ((*j)->CEndTime - (*j)->CActiveTime);
+          (*j)->ptInfo->insert("Duration (active)", ssDurationActive.str(), 'n');
+          ssDurationQueue << ((*j)->CActiveTime - (*j)->CStartTime);
+          (*j)->ptInfo->insert("Duration (queue)", ssDurationQueue.str(), 'n');
           ssInRecv << (*j)->unInRecv;
           (*j)->ptInfo->m["Transfer"]->m["In"]->insert("Recv", ssInRecv.str(), 'n');
           ssInSend << (*j)->unInSend;
@@ -708,6 +711,7 @@ void throttle()
         if ((int)i->second->active.size() < (*j)->nThrottle)
         {
           bUpdated = true;
+          time(&((*j)->CActiveTime));
           i->second->active.push_back(*j);
           thread tThread(active, (*j));
           pthread_setname_np(tThread.native_handle(), "active");
