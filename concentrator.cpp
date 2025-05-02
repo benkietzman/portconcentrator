@@ -1,4 +1,3 @@
-// vim600: fdm=marker
 /* -*- c++ -*- */
 ///////////////////////////////////////////
 // Port Concentrator
@@ -6,7 +5,7 @@
 // file       : concentrator.cpp
 // author     : Ben Kietzman
 // begin      : 2014-02-26
-// copyright  : kietzman.org
+// copyright  : Ben Kietzman
 // email      : ben@kietzman.org
 ///////////////////////////////////////////
 
