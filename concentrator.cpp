@@ -267,10 +267,10 @@ int main(int argc, char *argv[])
           {
             int fdIncoming;
             socklen_t clilen;
-            sockaddr_in cli_addr;
+            sockaddr_in6 cli_addr;
             gpCentral->log((string)"Listening to the socket.", strError);
             clilen = sizeof(cli_addr);
-            while ((fdIncoming = accept(fdSocket, (struct sockaddr *)&cli_addr, &clilen)) >= 0)
+            while ((fdIncoming = accept(fdSocket, (sockaddr *)&cli_addr, &clilen)) >= 0)
             {
               thread tThread(queue, fdIncoming);
               pthread_setname_np(tThread.native_handle(), "queue");
