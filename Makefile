@@ -15,7 +15,7 @@ all: bin/concentrator
 
 bin/concentrator: ../common/libcommon.a obj/concentrator.o
 	-if [ ! -d bin ]; then mkdir bin; fi;
-	g++ -ggdb -o bin/concentrator obj/concentrator.o $(LDFLAGS) -L/data/extras/lib -L../common -lcommon -lb64 -lcrypto -lexpat -lmjson -lpthread -lssl -ltar -lz
+	g++ -ggdb -o bin/concentrator obj/concentrator.o $(LDFLAGS) -L/data/extras/lib -L../common -lcommon -lb64 -lcrypto -lexpat -lmjson -lpthread -lssl -lz
 
 ../common/libcommon.a: ../common/Makefile
 	cd ../common; make;
